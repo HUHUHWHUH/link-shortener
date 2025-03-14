@@ -1,0 +1,53 @@
+services:
+  shortener:
+    build: .
+    container_name: shortener
+    ports:
+      - "8001:8000"
+    profiles:
+      - memory
+
+  shortener-db-app:
+    build: .
+    container_name: shortener-db-app
+    ports:
+      - "8005:8000"
+    command: ["/shortener/shortenerbin", "-storage", "postgres"]
+    environment:
+       POSTGRES_CONN: "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
+    profiles:
+      - db
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    profiles:
+      - db
+
+  test-db:
+    image: postgres:14
+    container_name: test-postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    profiles:
+      - test-db
+
+volumes:
+  pgdata: {}
+  pgdata_test: {}
